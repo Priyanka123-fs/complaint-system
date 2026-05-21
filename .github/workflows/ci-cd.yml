@@ -74,16 +74,16 @@ jobs:
           host: ${{ secrets.AZURE_VM_IP }}
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_SSH_KEY }}
-          command_timeout: 10m
+          command_timeout: 30m
           script: |
-            # Pull latest images
-            docker pull priyankamanickam/complaint-backend:latest
-            docker pull priyankamanickam/complaint-frontend:latest
+            # Pull latest images (use quiet to reduce output)
+            docker pull --quiet priyankamanickam/complaint-backend:latest
+            docker pull --quiet priyankamanickam/complaint-frontend:latest
             docker pull mongo:6
 
-            # Stop and remove old containers (ignore errors)
-            docker stop complaint-backend complaint-frontend complaint-mongo || true
-            docker rm complaint-backend complaint-frontend complaint-mongo || true
+            # Stop and remove old containers (ignore errors if they don't exist)
+            docker stop complaint-backend complaint-frontend complaint-mongo 2>/dev/null || true
+            docker rm complaint-backend complaint-frontend complaint-mongo 2>/dev/null || true
 
             # Start MongoDB
             docker run -d --name complaint-mongo --restart unless-stopped \
@@ -108,9 +108,9 @@ jobs:
               -p 80:80 \
               priyankamanickam/complaint-frontend:latest
 
-            # Wait a moment for frontend to be ready
+            # Wait a few seconds for frontend to be ready
             sleep 5
 
-            # Fix API_URL using the VM's IP (from the secret)
+            # Fix API_URL using the VM's public IP (from GitHub secret)
             VM_IP="${{ secrets.AZURE_VM_IP }}"
             docker exec complaint-frontend /bin/sh -c "sed -i 's|http://localhost:5001/api|http://'$VM_IP':5001/api|g' /usr/share/nginx/html/*.html"
