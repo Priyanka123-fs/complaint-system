@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CMS Portal • Modern Access | Complaint Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a1f33, #071426);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+        .app-container {
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .card-wrapper {
+            width: 100%;
+            position: relative;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 2rem;
+            box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.2) inset;
+            padding: 1.8rem 2.2rem;
+            width: 100%;
+            transition: opacity 0.3s ease;
+        }
+
+        .login-card { display: block; }
+        .register-card { display: none; position: absolute; top: 0; left: 0; }
+        .show-register .login-card { display: none; }
+        .show-register .register-card { display: block; position: relative; }
+        .show-register .card-wrapper { position: relative; }
+        .show-login .login-card { display: block; }
+        .show-login .register-card { display: none; }
+
+        @media (max-width: 900px) {
+            .app-container { max-width: 780px; }
+            .card { padding: 1.5rem 1.8rem; }
+        }
+        @media (max-width: 800px) {
+            .app-container { max-width: 96%; padding: 0.8rem; }
+            .card { padding: 1.3rem 1.5rem; }
+        }
+        @media (max-width: 700px) {
+            .form-row { flex-direction: column; gap: 12px; }
+            .form-row .input-group { flex: 1; min-width: auto; }
+        }
+        @media (max-height: 700px) {
+            .card { padding: 1.2rem 2rem; }
+            .logo { margin-bottom: 12px; padding-bottom: 8px; }
+            .roles { margin-bottom: 14px; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #ecf3fa;
+            padding-bottom: 10px;
+        }
+        .logo-icon {
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px -6px rgba(0,0,0,0.2);
+        }
+        .logo-icon i { font-size: 24px; color: white; }
+        .logo-text h2 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, #1e3c72, #2a5298);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .logo-text p { font-size: 0.68rem; font-weight: 500; color: #5b6e8c; }
+
+        h1 { font-size: 1.7rem; font-weight: 700; margin-bottom: 0.2rem; color: #0a2540; }
+        .subtitle {
+            font-size: 0.82rem;
+            color: #5c6f87;
+            margin-bottom: 1.3rem;
+            border-left: 3px solid #2a5298;
+            padding-left: 10px;
+        }
+
+        .roles {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            background: #f5f9fe;
+            padding: 5px;
+            border-radius: 60px;
+        }
+        .role {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 40px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+            background: transparent;
+            color: #4a5b7a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .role i { font-size: 0.88rem; }
+        .role.active {
+            background: white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(42,82,152,0.2);
+            color: #1e3c72;
+            font-weight: 700;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+        .form-row .input-group { flex: 1; margin-bottom: 0; }
+
+        .input-group { margin-bottom: 16px; }
+        label {
+            font-size: 0.77rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+            color: #1f3a5f;
+        }
+        .input-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon i {
+            position: absolute;
+            left: 15px;
+            color: #8e9eae;
+            font-size: 0.95rem;
+            pointer-events: none;
+        }
+        input {
+            width: 100%;
+            padding: 12px 14px 12px 44px;
+            border-radius: 16px;
+            border: 1.5px solid #e2e8f0;
+            background: white;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+            font-weight: 500;
+        }
+        input:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42,82,152,0.15);
+        }
+
+        .full-width { width: 100%; }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0 16px;
+            font-size: 0.77rem;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #2c3e66;
+        }
+        .checkbox-label input { width: 15px; height: 15px; margin: 0; accent-color: #2a5298; }
+        .options a { text-decoration: none; color: #2a5298; font-weight: 600; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(100deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            border-radius: 44px;
+            margin-top: 8px;
+            cursor: pointer;
+            font-size: 0.94rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 6px 14px -6px rgba(30,60,114,0.4);
+        }
+        button:hover {
+            background: linear-gradient(100deg, #143157, #1e3c72);
+            transform: translateY(-2px);
+        }
+
+        .switch-panel {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            padding-top: 12px;
+            border-top: 1px solid #ecf3fa;
+        }
+        .switch-panel a {
+            color: #2a5298;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .switch-panel a:hover { text-decoration: underline; }
+
+        .alert-message {
+            background: #fee2e2;
+            color: #b91c1c;
+            border-left: 4px solid #dc2626;
+            padding: 9px 12px;
+            border-radius: 16px;
+            font-size: 0.76rem;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        .success-message {
+            background: #e0f2e9;
+            color: #0a5c3e;
+            border-left-color: #10b981;
+        }
+        .field-hint {
+            font-size: 0.66rem;
+            color: #7286a3;
+            margin-top: 5px;
+            margin-left: 12px;
+        }
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        .btn-loading i { animation: spin 0.9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        body, .app-container, .card { overflow: hidden; }
+        .register-card .field-hint { margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+    <div class="card-wrapper">
+        <!-- LOGIN CARD -->
+        <div class="card login-card">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-clipboard-list"></i></div>
+                <div class="logo-text"><h2>CMS Portal</h2><p>Complaint Management System</p></div>
+            </div>
+            <h1>Welcome back</h1>
+            <p class="subtitle">Secure access for students & admins</p>
+
+            <div class="roles" id="loginRoles">
+                <div class="role active" data-role="student"><i class="fas fa-user-graduate"></i> Student</div>
+                <div class="role" data-role="admin"><i class="fas fa-user-shield"></i> Admin</div>
+            </div>
+            <div id="loginAlert"></div>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <label><i class="far fa-envelope"></i> Email</label>
+                    <div class="input-icon"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" autocomplete="off"></div>
+                    <div class="field-hint" id="loginEmailHint"></div>
+                </div>
+                <div class="input-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <div class="input-icon"><i class="fas fa-key"></i><input type="password" id="loginPassword" ></div>
+                </div>
+                <div class="options">
+                    <label class="checkbox-label"><input type="checkbox" id="rememberMe"> <span>Keep me signed in</span></label>
+                    <a href="#" id="forgotLink"><i class="fas fa-question-circle"></i> Forgot?</a>
+                </div>
+                <button type="submit" id="loginBtn"><i class="fas fa-arrow-right-to-bracket"></i> Sign in</button>
+            </form>
+            <div class="switch-panel">New here? <a id="openRegisterTrigger">Create account →</a></div>
+        </div>
+
+        <!-- REGISTER CARD -->
+        <div class="card register-card">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-user-plus"></i></div>
+                <div class="logo-text"><h2>Join CMS</h2><p>Get started in seconds</p></div>
+            </div>
+            <h1>Create account</h1>
+            <p class="subtitle">Register as student or admin</p>
+
+            <div class="roles" id="registerRoles">
+                <div class="role active" data-role="student"><i class="fas fa-user-graduate"></i> Student</div>
+                <div class="role" data-role="admin"><i class="fas fa-user-shield"></i> Admin</div>
+            </div>
+            <div id="registerAlert"></div>
+
+            <form id="registerForm">
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Full name</label>
+                        <div class="input-icon"><i class="fas fa-user"></i><input type="text" id="regFullname" ></div>
+                    </div>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <div class="input-icon"><i class="fas fa-envelope"></i><input type="email" id="regEmail" ></div>
+                    </div>
+                </div>
+                <div class="field-hint" id="regEmailHint" style="margin-top: -8px; margin-bottom: 8px;"></div>
+
+                <div class="form-row">
+                    <div class="input-group">
+                        <label>Password</label>
+                        <div class="input-icon"><i class="fas fa-lock"></i><input type="password" id="regPassword" placeholder="Min. 6 characters"></div>
+                    </div>
+                    <div class="input-group">
+                        <label>Confirm password</label>
+                        <div class="input-icon"><i class="fas fa-check-circle"></i><input type="password" id="regConfirmPwd" placeholder="Confirm password"></div>
+                    </div>
+                </div>
+
+                <div class="input-group full-width">
+                    <label>Admin code <span id="adminCodeLabelHint">(required for Admin)</span></label>
+                    <div class="input-icon"><i class="fas fa-key"></i><input type="text" id="regAdminCode" placeholder="ADMIN2025"></div>
+                </div>
+
+                <div class="options">
+                    <label class="checkbox-label"><input type="checkbox" id="termsAgree"> I agree to <a href="#" style="color:#2a5298;">Terms & Privacy</a></label>
+                </div>
+                <button type="submit" id="registerBtn"><i class="fas fa-user-check"></i> Register</button>
+            </form>
+            <div class="switch-panel">Already have an account? <a id="openLoginTrigger">Sign in →</a></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5001/api';
+    let currentLoginRole = 'student';
+    let currentRegisterRole = 'student';
+
+    // DOM elements
+    const appContainer = document.getElementById('appContainer');
+    const loginRoles = document.querySelectorAll('#loginRoles .role');
+    const registerRoles = document.querySelectorAll('#registerRoles .role');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    const rememberMe = document.getElementById('rememberMe');
+    const loginAlertDiv = document.getElementById('loginAlert');
+    const loginEmailHint = document.getElementById('loginEmailHint');
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const regFullname = document.getElementById('regFullname');
+    const regEmail = document.getElementById('regEmail');
+    const regPassword = document.getElementById('regPassword');
+    const regConfirmPwd = document.getElementById('regConfirmPwd');
+    const regAdminCode = document.getElementById('regAdminCode');
+    const termsAgree = document.getElementById('termsAgree');
+    const registerAlertDiv = document.getElementById('registerAlert');
+    const regEmailHint = document.getElementById('regEmailHint');
+    const registerForm = document.getElementById('registerForm');
+    const registerBtn = document.getElementById('registerBtn');
+    const adminCodeLabelHint = document.getElementById('adminCodeLabelHint');
+    const openRegisterTrigger = document.getElementById('openRegisterTrigger');
+    const openLoginTrigger = document.getElementById('openLoginTrigger');
+    const forgotLink = document.getElementById('forgotLink');
+
+    function showAlert(container, message, isError = true, isSuccess = false) {
+        container.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = 'alert-message';
+        if (isSuccess) div.classList.add('success-message');
+        div.innerHTML = `${isSuccess ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-triangle"></i>'} <span>${message}</span>`;
+        container.appendChild(div);
+        setTimeout(() => {
+            if (container.firstChild === div) {
+                div.style.opacity = '0';
+                setTimeout(() => { if (container.firstChild === div) container.innerHTML = ''; }, 200);
+            }
+        }, 4000);
+    }
+
+    function clearAlert(container) { if (container.innerHTML) container.innerHTML = ''; }
+
+    // Login role selection
+    function initLoginRoles() {
+        loginRoles.forEach(role => {
+            role.addEventListener('click', () => {
+                loginRoles.forEach(r => r.classList.remove('active'));
+                role.classList.add('active');
+                currentLoginRole = role.getAttribute('data-role');
+                if (currentLoginRole === 'student') {
+                    loginEmailHint.innerHTML = '<i class="fas fa-graduation-cap"></i> Use your registered email';
+                    loginEmail.placeholder = 'student@university.edu';
+                } else {
+                    loginEmailHint.innerHTML = '<i class="fas fa-shield-alt"></i> Admin email address';
+                    loginEmail.placeholder = 'admin@cms.com';
+                }
+                clearAlert(loginAlertDiv);
+            });
+        });
+    }
+
+    // Register role selection
+    function initRegisterRoles() {
+        registerRoles.forEach(role => {
+            role.addEventListener('click', () => {
+                registerRoles.forEach(r => r.classList.remove('active'));
+                role.classList.add('active');
+                currentRegisterRole = role.getAttribute('data-role');
+                if (currentRegisterRole === 'student') {
+                    regEmailHint.innerHTML = '<i class="fas fa-university"></i> Use your academic email';
+                    regEmail.placeholder = 'student@university.edu';
+                    regAdminCode.placeholder = 'Optional for students';
+                    adminCodeLabelHint.innerHTML = '(optional for students)';
+                    regAdminCode.value = '';
+                } else {
+                    regEmailHint.innerHTML = '<i class="fas fa-lock"></i> Admin registration requires valid code: ADMIN2025';
+                    regEmail.placeholder = 'admin@organization.com';
+                    regAdminCode.placeholder = 'Enter ADMIN2025';
+                    adminCodeLabelHint.innerHTML = '(required for Admin)';
+                }
+                clearAlert(registerAlertDiv);
+            });
+        });
+    }
+
+    // Validate registration (client side)
+    function validateRegistration() {
+        const fullname = regFullname.value.trim();
+        if (!fullname) return 'Full name is required';
+        if (fullname.length < 3) return 'Name must be at least 3 characters';
+        const email = regEmail.value.trim();
+        const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+        if (!email) return 'Email address required';
+        if (!emailRegex.test(email)) return 'Valid email required';
+        const pwd = regPassword.value;
+        if (!pwd) return 'Password required';
+        if (pwd.length < 6) return 'Password must be at least 6 characters';
+        if (pwd !== regConfirmPwd.value) return 'Passwords do not match';
+        if (!termsAgree.checked) return 'You must accept Terms & Privacy';
+        if (currentRegisterRole === 'admin') {
+            const code = regAdminCode.value.trim();
+            if (code !== 'ADMIN2025') return 'Invalid admin registration code. Use ADMIN2025';
+        }
+        return null;
+    }
+
+    // Register API call
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearAlert(registerAlertDiv);
+        const error = validateRegistration();
+        if (error) {
+            showAlert(registerAlertDiv, error, true);
+            return;
+        }
+        registerBtn.classList.add('btn-loading');
+        registerBtn.innerHTML = '<i class="fas fa-spinner"></i> Creating account...';
+        try {
+            const response = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: regFullname.value.trim(),
+                    email: regEmail.value.trim(),
+                    password: regPassword.value,
+                    role: currentRegisterRole
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.msg || 'Registration failed');
+            // Registration success
+            showAlert(registerAlertDiv, `✅ Registration successful! Welcome ${data.user.name}.`, false, true);
+            registerForm.reset();
+            termsAgree.checked = false;
+            setTimeout(() => {
+                appContainer.classList.remove('show-register');
+                appContainer.classList.add('show-login');
+                loginEmail.value = data.user.email;
+                clearAlert(loginAlertDiv);
+                showAlert(loginAlertDiv, 'Account created! Please sign in.', false, true);
+            }, 1500);
+        } catch (err) {
+            showAlert(registerAlertDiv, err.message, true);
+        } finally {
+            registerBtn.classList.remove('btn-loading');
+            registerBtn.innerHTML = '<i class="fas fa-user-check"></i> Register';
+        }
+    });
+
+    // Login API call
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearAlert(loginAlertDiv);
+        const email = loginEmail.value.trim();
+        const password = loginPassword.value;
+        if (!email || !password) {
+            showAlert(loginAlertDiv, 'Please fill both email and password', true);
+            return;
+        }
+        loginBtn.classList.add('btn-loading');
+        loginBtn.innerHTML = '<i class="fas fa-spinner"></i> Signing in...';
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.msg || 'Login failed');
+            // Store token and user data
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            if (rememberMe.checked) {
+                localStorage.setItem('cms_remember_email', email);
+                localStorage.setItem('cms_remember_role', data.user.role);
+            } else {
+                localStorage.removeItem('cms_remember_email');
+                localStorage.removeItem('cms_remember_role');
+            }
+            showAlert(loginAlertDiv, `✨ Welcome ${data.user.name}! Redirecting...`, false, true);
+            setTimeout(() => {
+                if (data.user.role === 'student') window.location.href = 'student-dashboard.html';
+                else window.location.href = 'admin-dashboard.html';
+            }, 1500);
+        } catch (err) {
+            showAlert(loginAlertDiv, err.message, true);
+            loginPassword.value = '';
+        } finally {
+            loginBtn.classList.remove('btn-loading');
+            loginBtn.innerHTML = '<i class="fas fa-arrow-right-to-bracket"></i> Sign in';
+        }
+    });
+
+    // Forgot password (demo)
+    forgotLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emailVal = loginEmail.value.trim();
+        if (!emailVal) showAlert(loginAlertDiv, 'Enter your email to reset password', true);
+        else showAlert(loginAlertDiv, `📧 Password reset link sent to ${emailVal} (demo mode)`, false, true);
+    });
+
+    // Load remembered login
+    function loadRemembered() {
+        const savedEmail = localStorage.getItem('cms_remember_email');
+        const savedRole = localStorage.getItem('cms_remember_role');
+        if (savedEmail && savedRole) {
+            loginEmail.value = savedEmail;
+            rememberMe.checked = true;
+            if (savedRole === 'student') document.querySelector('#loginRoles .role[data-role="student"]').click();
+            else document.querySelector('#loginRoles .role[data-role="admin"]').click();
+        }
+    }
+
+    // Toggle forms
+    openRegisterTrigger.addEventListener('click', () => {
+        appContainer.classList.remove('show-login');
+        appContainer.classList.add('show-register');
+        clearAlert(registerAlertDiv);
+        clearAlert(loginAlertDiv);
+        const activeReg = document.querySelector('#registerRoles .role.active');
+        if (activeReg) {
+            currentRegisterRole = activeReg.getAttribute('data-role');
+            if (currentRegisterRole === 'student') {
+                regEmailHint.innerHTML = '<i class="fas fa-university"></i> Use your academic email';
+                regAdminCode.placeholder = 'Optional for students';
+                adminCodeLabelHint.innerHTML = '(optional for students)';
+            } else {
+                regEmailHint.innerHTML = '<i class="fas fa-lock"></i> Admin registration requires valid code: ADMIN2025';
+                regAdminCode.placeholder = 'Enter ADMIN2025';
+                adminCodeLabelHint.innerHTML = '(required for Admin)';
+            }
+        }
+    });
+
+    openLoginTrigger.addEventListener('click', () => {
+        appContainer.classList.remove('show-register');
+        appContainer.classList.add('show-login');
+        clearAlert(loginAlertDiv);
+        clearAlert(registerAlertDiv);
+    });
+
+    // Initialize
+    function init() {
+        appContainer.classList.add('show-login');
+        loginEmailHint.innerHTML = '<i class="fas fa-graduation-cap"></i> Use your registered email';
+        regEmailHint.innerHTML = '<i class="fas fa-university"></i> Use your academic email';
+        loadRemembered();
+        regAdminCode.placeholder = "Optional for students";
+        adminCodeLabelHint.innerHTML = '(optional for students)';
+    }
+
+    initLoginRoles();
+    initRegisterRoles();
+    init();
+</script>
+</body>
+</html>

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Student Dashboard | CMS Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, #0a1f33, #071426);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            color: #1A2C3E;
+        }
+
+        /* top bar – glass effect */
+        .topbar {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            padding: 0.8rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .logo {
+            font-weight: 700;
+            font-size: 1.3rem;
+            background: linear-gradient(120deg, #1e3c72, #2a5298);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 40px;
+        }
+        .nav-btn {
+            background: transparent;
+            color: #4a5b7a;
+            border: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-btn.active {
+            background: #2a5298;
+            color: white;
+            box-shadow: 0 2px 6px rgba(42,82,152,0.3);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-name {
+            font-weight: 500;
+            color: #1f3a5f;
+        }
+        .logout-btn {
+            background: #e2e8f0;
+            color: #1e3c72;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .logout-btn:hover {
+            background: #cbd5e1;
+        }
+
+        /* main container */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* card style – identical to login/register card */
+        .card-modern {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 2rem;
+            box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.2) inset;
+            padding: 1.8rem 2.2rem;
+            width: 100%;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #0a2540;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #5b6e8c;
+            letter-spacing: 0.03em;
+        }
+        .stat-num {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-top: 0.2rem;
+            line-height: 1.2;
+        }
+        .stat-num.pending { color: #BA7517; }
+        .stat-num.review { color: #185FA5; }
+        .stat-num.resolved { color: #3B6D11; }
+
+        /* Notifications */
+        .notif-item {
+            display: flex;
+            gap: 14px;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .notif-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 5px;
+        }
+        .notif-dot.info { background: #2a5298; box-shadow: 0 0 0 2px rgba(42,82,152,0.2); }
+        .notif-dot.success { background: #3B6D11; }
+        .notif-text { font-size: 0.85rem; color: #1f3a5f; }
+        .notif-time { font-size: 0.7rem; color: #8e9eae; margin-top: 3px; }
+
+        /* Form groups – same as login page */
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+            color: #1f3a5f;
+        }
+        .input-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon i {
+            position: absolute;
+            left: 15px;
+            color: #8e9eae;
+            font-size: 0.95rem;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 14px 12px 44px;
+            border-radius: 16px;
+            border: 1.5px solid #e2e8f0;
+            background: white;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+        }
+        .form-group textarea {
+            padding: 12px 14px;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42,82,152,0.15);
+        }
+
+        /* dynamic fields container */
+        .dynamic-fields {
+            margin-top: -0.5rem;
+            margin-bottom: 0.5rem;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        button {
+            background: linear-gradient(100deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            border-radius: 44px;
+            padding: 10px 24px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px -4px rgba(30,60,114,0.4);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(100deg, #143157, #1e3c72);
+        }
+
+        /* complaint cards */
+        .complaint-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border-left: 5px solid #2a5298;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .complaint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .badge {
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-pending { background: #FAEEDA; color: #BA7517; }
+        .badge-review { background: #E6F1FB; color: #185FA5; }
+        .badge-resolved { background: #EAF3DE; color: #3B6D11; }
+        .alert {
+            padding: 0.7rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+        }
+        .alert-success { background: #e0f2e9; color: #0a5c3e; border-left: 4px solid #10b981; }
+        .alert-error { background: #fee2e2; color: #b91c1c; border-left: 4px solid #dc2626; }
+
+        .empty-message {
+            text-align: center;
+            padding: 2rem;
+            color: #5b6e8c;
+        }
+
+        @media (max-width: 700px) {
+            .dashboard-container { padding: 1rem; }
+            .topbar { padding: 0.8rem 1rem; }
+            .card-modern { padding: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="logo">📋 CMS Portal</div>
+    <div class="nav">
+        <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+        <button class="nav-btn" data-page="complaint">New Complaint</button>
+        <button class="nav-btn" data-page="history">My Complaints</button>
+    </div>
+    <div class="user-info">
+        <span class="user-name" id="userName"></span>
+        <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+</div>
+
+<div class="dashboard-container" id="dashboardContent"></div>
+
+<script>
+    const API_URL = 'http://localhost:5001/api';
+    let token = localStorage.getItem('token');
+    let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+    // Redirect if not logged in or not a student
+    if (!token || !currentUser.id || currentUser.role !== 'student') {
+        window.location.href = 'login.html';
+    }
+
+    document.getElementById('userName').innerText = currentUser.name || 'Student';
+
+    // Helper fetch with token
+    async function apiFetch(endpoint, options = {}) {
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.msg || 'Request failed');
+        }
+        return res.json();
+    }
+
+    function showAlert(containerId, message, isError = false) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = `<div class="alert ${isError ? 'alert-error' : 'alert-success'}">${message}</div>`;
+        setTimeout(() => {
+            if (container.firstChild) container.innerHTML = '';
+        }, 3500);
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, m => {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // --- Dashboard view (stats + recent notifications) ---
+    async function renderDashboardView() {
+        let complaints = [];
+        try {
+            complaints = await apiFetch('/complaints');
+        } catch (err) {
+            document.getElementById('dashboardContent').innerHTML = `<div class="card-modern"><div class="alert alert-error">${err.message}</div></div>`;
+            return;
+        }
+
+        const pending = complaints.filter(c => c.status === 'pending').length;
+        const review = complaints.filter(c => c.status === 'review').length;
+        const resolved = complaints.filter(c => c.status === 'resolved').length;
+
+        const recent = [...complaints].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3);
+        let notifHtml = '';
+        if (recent.length === 0) {
+            notifHtml = '<div class="empty-message">No recent activity</div>';
+        } else {
+            recent.forEach(c => {
+                let msg = '';
+                if (c.status === 'resolved') msg = `✅ "${c.subject}" resolved`;
+                else if (c.status === 'review') msg = `🔄 "${c.subject}" under review`;
+                else msg = `⏳ "${c.subject}" pending`;
+                notifHtml += `
+                    <div class="notif-item">
+                        <div class="notif-dot ${c.status === 'resolved' ? 'success' : 'info'}"></div>
+                        <div>
+                            <div class="notif-text">${msg}</div>
+                            <div class="notif-time">${new Date(c.createdAt).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        const html = `
+            <div class="card-modern">
+                <h2><i class="fas fa-chart-line"></i> Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-num pending">${pending}</div></div>
+                    <div class="stat-card"><div class="stat-label">Under Review</div><div class="stat-num review">${review}</div></div>
+                    <div class="stat-card"><div class="stat-label">Resolved</div><div class="stat-num resolved">${resolved}</div></div>
+                </div>
+                <h3 style="font-size:1.1rem; margin: 1rem 0 0.5rem;">Recent Notifications</h3>
+                <div>${notifHtml}</div>
+                <button id="quickComplaintBtn" style="margin-top:1.5rem;"><i class="fas fa-plus"></i> Raise New Complaint</button>
+            </div>
+        `;
+        document.getElementById('dashboardContent').innerHTML = html;
+        document.getElementById('quickComplaintBtn')?.addEventListener('click', () => {
+            document.querySelector('.nav-btn[data-page="complaint"]').click();
+        });
+    }
+
+    // --- Dynamic fields logic for complaint form ---
+    function updateDynamicFields(category) {
+        const container = document.getElementById('dynamicFieldsContainer');
+        if (!container) return;
+        if (category === 'faculty') {
+            container.innerHTML = `
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <div class="input-icon"><i class="fas fa-book"></i><input type="text" id="courseName" placeholder="e.g., Data Structures"></div>
+                </div>
+                <div class="form-group">
+                    <label>Faculty / Staff Name</label>
+                    <div class="input-icon"><i class="fas fa-chalkboard-user"></i><input type="text" id="facultyName" placeholder="e.g., Dr. Ramesh Kumar"></div>
+                </div>
+            `;
+        } else if (category === 'lab') {
+            container.innerHTML = `
+                <div class="form-group">
+                    <label>Lab Name</label>
+                    <div class="input-icon"><i class="fas fa-flask"></i><input type="text" id="labName" placeholder="e.g., Computer Lab 3"></div>
+                </div>
+                <div class="form-group">
+                    <label>Equipment Name</label>
+                    <div class="input-icon"><i class="fas fa-microscope"></i><input type="text" id="equipmentName" placeholder="e.g., Oscilloscope #7"></div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '';
+        }
+    }
+
+    // --- New Complaint view (with dynamic fields) ---
+    async function renderComplaintView() {
+        document.getElementById('dashboardContent').innerHTML = `
+            <div class="card-modern">
+                <h2><i class="fas fa-pen-alt"></i> Submit New Complaint</h2>
+                <div id="submitAlert"></div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <div class="input-icon"><i class="fas fa-heading"></i><input type="text" id="subj" placeholder="Brief title of the issue"></div>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <div class="input-icon"><i class="fas fa-tags"></i>
+                        <select id="cat">
+                            <option value="">-- Select Category --</option>
+                            <option value="faculty">Faculty / Course</option>
+                            <option value="classroom">Classroom Facilities</option>
+                            <option value="lab">Laboratory / Equipment</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="dynamicFieldsContainer" class="dynamic-fields"></div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="desc" rows="4" placeholder="Detailed explanation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <div class="input-icon"><i class="fas fa-flag"></i>
+                        <select id="prio">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="submitComplaintBtn"><i class="fas fa-paper-plane"></i> Submit Complaint</button>
+            </div>
+        `;
+
+        const categorySelect = document.getElementById('cat');
+        const dynamicContainer = document.getElementById('dynamicFieldsContainer');
+        
+        categorySelect.addEventListener('change', () => {
+            updateDynamicFields(categorySelect.value);
+        });
+
+        document.getElementById('submitComplaintBtn').onclick = async () => {
+            const subject = document.getElementById('subj').value.trim();
+            const category = categorySelect.value;
+            let description = document.getElementById('desc').value.trim();
+            const priority = document.getElementById('prio').value;
+
+            if (!subject || !category || !description) {
+                showAlert('submitAlert', 'Subject, category, and description are required.', true);
+                return;
+            }
+
+            // Collect extra fields based on category
+            let extraInfo = '';
+            if (category === 'faculty') {
+                const course = document.getElementById('courseName')?.value.trim() || '';
+                const faculty = document.getElementById('facultyName')?.value.trim() || '';
+                if (course || faculty) {
+                    extraInfo = `\n[Course: ${course || 'N/A'} | Faculty: ${faculty || 'N/A'}]`;
+                }
+            } else if (category === 'lab') {
+                const lab = document.getElementById('labName')?.value.trim() || '';
+                const equipment = document.getElementById('equipmentName')?.value.trim() || '';
+                if (lab || equipment) {
+                    extraInfo = `\n[Lab: ${lab || 'N/A'} | Equipment: ${equipment || 'N/A'}]`;
+                }
+            }
+
+            if (extraInfo) {
+                description = description + extraInfo;
+            }
+
+            try {
+                await apiFetch('/complaints', {
+                    method: 'POST',
+                    body: JSON.stringify({ subject, category, description, priority })
+                });
+                showAlert('submitAlert', '✅ Complaint submitted successfully!', false);
+                setTimeout(() => {
+                    document.querySelector('.nav-btn[data-page="history"]').click();
+                }, 1500);
+            } catch (err) {
+                showAlert('submitAlert', err.message, true);
+            }
+        };
+    }
+
+    // --- My Complaints view ---
+    async function renderHistoryView() {
+        document.getElementById('dashboardContent').innerHTML = `
+            <div class="card-modern">
+                <h2><i class="fas fa-list"></i> My Complaints</h2>
+                <div id="complaintsContainer">Loading...</div>
+            </div>
+        `;
+        try {
+            const complaints = await apiFetch('/complaints');
+            const container = document.getElementById('complaintsContainer');
+            if (complaints.length === 0) {
+                container.innerHTML = '<div class="empty-message"><i class="fas fa-inbox"></i> No complaints filed yet.</div>';
+                return;
+            }
+            let html = '';
+            complaints.forEach(c => {
+                html += `
+                    <div class="complaint-card">
+                        <div class="complaint-header">
+                            <strong>${escapeHtml(c.subject)}</strong>
+                            <span class="badge badge-${c.status}">${c.status}</span>
+                        </div>
+                        <div><small>${c.category} · Priority: ${c.priority} · ${new Date(c.createdAt).toLocaleDateString()}</small></div>
+                        <p style="margin-top: 8px;">${escapeHtml(c.description)}</p>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } catch (err) {
+            document.getElementById('complaintsContainer').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+        }
+    }
+
+    // --- Page navigation ---
+    let currentPage = 'dashboard';
+    async function showPage(pageId) {
+        currentPage = pageId;
+        if (pageId === 'dashboard') await renderDashboardView();
+        else if (pageId === 'complaint') await renderComplaintView();
+        else if (pageId === 'history') await renderHistoryView();
+    }
+
+    // Attach nav button events
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const page = btn.getAttribute('data-page');
+            if (!page) return;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            showPage(page);
+        });
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').onclick = () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    };
+
+    // Initial render
+    showPage('dashboard');
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Hub | ComplaintHub</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --blue: #185FA5; --blue-light: #E6F1FB; --blue-dark: #0C447C;
+      --amber: #BA7517; --amber-bg: #FAEEDA;
+      --green: #3B6D11; --green-bg: #EAF3DE;
+      --red: #A32D2D; --red-bg: #FCEBEB;
+      --border: #E2E8F0; --text-muted: #5B6F82;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #F5F7FA; color: #1A2C3E; }
+
+    .topbar {
+      background: white; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.8rem; height: 65px; position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-weight: 700; color: var(--blue); font-size: 1.3rem; display: flex; align-items: center; gap: 8px; }
+    .nav { display: flex; gap: 8px; background: #F1F5F9; padding: 5px; border-radius: 40px; }
+    .nav-btn { padding: 8px 22px; border: none; background: transparent; border-radius: 30px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; transition: all 0.3s; }
+    .nav-btn.active { background: var(--blue); color: white; box-shadow: 0 4px 10px rgba(24, 95, 165, 0.2); }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .page { display: none; animation: fadeIn 0.4s ease-in-out; }
+    .page.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .stat-card { background: white; padding: 1.5rem; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .stat-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-num { font-size: 2.2rem; font-weight: 800; margin-top: 8px; }
+
+    .filter-bar {
+      background: white; padding: 1.2rem; border-radius: 16px; border: 1px solid var(--border);
+      display: flex; gap: 12px; margin-bottom: 2rem; align-items: center; flex-wrap: wrap;
+    }
+    .filter-bar select, .filter-bar input {
+      padding: 10px 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 0.9rem; outline: none; transition: border 0.2s;
+    }
+    .filter-bar input:focus { border-color: var(--blue); }
+
+    .card { background: white; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
+    .card-header { padding: 1rem 1.5rem; background: #FAFCFE; border-bottom: 1px solid var(--border); font-size: 0.8rem; font-weight: 700; color: var(--blue-dark); text-transform: uppercase; }
+    
+    .complaint-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; transition: background 0.2s; }
+    .complaint-item:hover { background: #F8FAFC; }
+    .comp-title { font-weight: 700; font-size: 1.05rem; color: #2D3748; margin-bottom: 6px; }
+    .comp-sub { font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+    .comp-desc { margin-top: 12px; font-size: 0.9rem; color: #4A5568; line-height: 1.5; background: #F1F5F9; padding: 12px; border-radius: 12px; border-left: 4px solid var(--blue); }
+
+    .badge { font-size: 0.7rem; padding: 4px 12px; border-radius: 30px; font-weight: 700; text-transform: uppercase; }
+    .prio-high { color: var(--red); background: var(--red-bg); }
+    .prio-medium { color: var(--amber); background: var(--amber-bg); }
+    .prio-low { color: var(--green); background: var(--green-bg); }
+    .status-pending { background: #EDF2F7; color: #4A5568; }
+    .status-review { background: var(--blue-light); color: var(--blue-dark); }
+    .status-resolved { background: var(--green-bg); color: var(--green); }
+
+    .btn-action { background: var(--blue); color: white; border: none; padding: 8px 20px; border-radius: 30px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    .chart-wrapper { padding: 2rem; display: flex; justify-content: center; align-items: center; min-height: 350px; }
+    .chart-container { position: relative; width: 100%; max-width: 400px; }
+
+    .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:200; backdrop-filter: blur(4px); }
+    .modal-content { background:white; padding:2rem; border-radius:24px; width:90%; max-width: 500px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); }
+    textarea { width:100%; margin: 15px 0; padding:12px; border: 1px solid var(--border); border-radius: 15px; font-size: 0.9rem; }
+
+    @media (max-width: 700px) { .container { padding: 1rem; } .topbar { padding: 0 1rem; } .complaint-item { flex-direction: column; } }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">📋 ComplaintHub <span style="font-size: 0.65rem; background: var(--blue-light); color: var(--blue); padding: 3px 10px; border-radius: 20px; margin-left: 8px;">ADMIN PORTAL</span></div>
+  <div class="nav">
+    <button class="nav-btn active" data-page="dash">Dashboard</button>
+    <button class="nav-btn" data-page="inbox">Manage Inbox</button>
+  </div>
+  <div style="display: flex; align-items: center; gap: 15px;">
+    <span id="adminName" style="font-weight: 500;"></span>
+    <button id="logoutBtn" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</div>
+
+<main class="container">
+  
+  <div id="dash" class="page active">
+    <div class="stats-grid" id="statsDisplay"></div>
+    <div class="card">
+      <div class="card-header">Complaint Volume by Category</div>
+      <div class="chart-wrapper">
+        <div class="chart-container">
+          <canvas id="categoryPieChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="inbox" class="page">
+    <div class="filter-bar">
+      <input type="text" id="searchBox" placeholder="Search by title..." onkeyup="refreshInbox()">
+      <select id="catFilter" onchange="refreshInbox()">
+        <option value="all">All Categories</option>
+        <option value="faculty">Faculty / Course</option>
+        <option value="classroom">Classroom Facilities</option>
+        <option value="lab">Laboratory / Equipment</option>
+        <option value="other">Other</option>
+      </select>
+      <select id="prioFilter" onchange="refreshInbox()">
+        <option value="all">All Priorities</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+      <select id="statusFilter" onchange="refreshInbox()">
+        <option value="all">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="review">Under Review</option>
+        <option value="resolved">Resolved</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Student Grievance Queue</div>
+      <div id="complaintContainer">Loading...</div>
+    </div>
+  </div>
+
+</main>
+
+
+
+<script>
+  // Font Awesome for logout icon (add if needed)
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
+  document.head.appendChild(link);
+
+  const API_URL = 'http://localhost:5001/api';
+  let token = localStorage.getItem('token');
+  let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  let allComplaints = [];
+  let pieChart = null;
+  let activeComplaintId = null;
+
+  // Redirect if not admin
+  if (!token || currentUser.role !== 'admin') {
+    window.location.href = 'login.html';
+  }
+
+  document.getElementById('adminName').innerText = currentUser.name || 'Admin';
+
+  // Helper fetch with token
+  async function apiFetch(endpoint, options = {}) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+    const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.msg || 'Request failed');
+    }
+    return res.json();
+  }
+
+  // Load complaints from backend
+  async function loadComplaints() {
+    try {
+      const data = await apiFetch('/complaints');
+      allComplaints = data;
+      return data;
+    } catch (err) {
+      console.error(err);
+      document.getElementById('complaintContainer').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      return [];
+    }
+  }
+
+  // Update complaint status (admin only)
+  async function updateStatus(complaintId, newStatus, resolutionNote = '') {
+    try {
+      await apiFetch(`/complaints/${complaintId}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus })
+      });
+      // Note: resolution note is not stored in backend currently; could be added later
+      return true;
+    } catch (err) {
+      alert('Failed to update status: ' + err.message);
+      return false;
+    }
+  }
+
+  // Dashboard: stats and pie chart
+  async function renderDashboard() {
+    const complaints = await loadComplaints();
+    const total = complaints.length;
+    const pending = complaints.filter(c => c.status === 'pending').length;
+    const resolved = complaints.filter(c => c.status === 'resolved').length;
+    const review = complaints.filter(c => c.status === 'review').length;
+
+    document.getElementById('statsDisplay').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Total Submissions</div><div class="stat-num" style="color: var(--blue)">${total}</div></div>
+      <div class="stat-card"><div class="stat-label">Pending Action</div><div class="stat-num" style="color: var(--amber)">${pending}</div></div>
+      <div class="stat-card"><div class="stat-label">Under Review</div><div class="stat-num" style="color: var(--blue)">${review}</div></div>
+      <div class="stat-card"><div class="stat-label">Successfully Resolved</div><div class="stat-num" style="color: var(--green)">${resolved}</div></div>
+    `;
+    drawPieChart(complaints);
+  }
+
+  function drawPieChart(complaints) {
+    const categoryCount = {};
+    complaints.forEach(c => {
+      const cat = c.category || 'Other';
+      categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+    });
+    const ctx = document.getElementById('categoryPieChart').getContext('2d');
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: Object.keys(categoryCount),
+        datasets: [{
+          data: Object.values(categoryCount),
+          backgroundColor: ['#185FA5', '#BA7517', '#3B6D11', '#A32D2D', '#718096', '#2A5298'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 12, weight: '600' } } },
+          tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw} complaints` } }
+        }
+      }
+    });
+  }
+
+  // Inbox: filtering and rendering
+  async function refreshInbox() {
+    const container = document.getElementById('complaintContainer');
+    container.innerHTML = 'Loading...';
+    const complaints = await loadComplaints();
+    
+    const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+    const categoryFilter = document.getElementById('catFilter').value;
+    const priorityFilter = document.getElementById('prioFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+
+    let filtered = complaints.filter(c => {
+      const matchesSearch = c.subject.toLowerCase().includes(searchTerm);
+      const matchesCategory = categoryFilter === 'all' || c.category === categoryFilter;
+      const matchesPriority = priorityFilter === 'all' || c.priority === priorityFilter;
+      const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
+      return matchesSearch && matchesCategory && matchesPriority && matchesStatus;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="padding:50px; text-align:center; color:var(--text-muted)">No complaints match the filters.</div>';
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(c => {
+      const priorityClass = `prio-${c.priority}`;
+      const statusClass = `status-${c.status}`;
+      const statusText = c.status === 'review' ? 'Under Review' : c.status.charAt(0).toUpperCase() + c.status.slice(1);
+      html += `
+        <div class="complaint-item" data-id="${c._id}">
+          <div style="flex:1">
+            <div class="comp-title">${escapeHtml(c.subject)}</div>
+            <div class="comp-sub">
+              <span class="badge ${priorityClass}">${c.priority}</span>
+              <span><strong>Category:</strong> ${c.category}</span>
+              <span><strong>Student:</strong> ${c.userId?.name || 'Unknown'} (${c.userId?.email || 'no email'})</span>
+              <span><strong>Posted:</strong> ${new Date(c.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div class="comp-desc">${escapeHtml(c.description)}</div>
+          </div>
+          <div style="text-align:right; min-width:140px;">
+            <span class="badge ${statusClass}">${statusText}</span><br><br>
+            ${c.status !== 'resolved' ? `
+              <select class="status-select" data-id="${c._id}" style="margin-bottom:8px; padding:4px 8px; border-radius:20px;">
+                <option value="pending" ${c.status === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="review" ${c.status === 'review' ? 'selected' : ''}>Under Review</option>
+                <option value="resolved" ${c.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+              </select><br>
+              <button class="btn-action" style="background:var(--green); padding:4px 12px;" onclick="showResolveModal('${c._id}', '${escapeHtml(c.subject)}')">Resolve</button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+
+    // Attach change event to status selects (for quick status change)
+    document.querySelectorAll('.status-select').forEach(select => {
+      select.addEventListener('change', async (e) => {
+        const complaintId = select.getAttribute('data-id');
+        const newStatus = select.value;
+        if (await updateStatus(complaintId, newStatus)) {
+          refreshInbox();
+          renderDashboard();
+        }
+      });
+    });
+  }
+
+  function showResolveModal(id, subject) {
+    activeComplaintId = id;
+    document.getElementById('mHeader').innerHTML = `Resolve Complaint: ${subject}`;
+    document.getElementById('modalOverlay').style.display = 'flex';
+  }
+
+  function hideModal() {
+    document.getElementById('modalOverlay').style.display = 'none';
+    document.getElementById('adminNote').value = '';
+    activeComplaintId = null;
+  }
+
+  async function saveResolution() {
+    const note = document.getElementById('adminNote').value.trim();
+    if (!note) {
+      alert('Please enter resolution details.');
+      return;
+    }
+    if (activeComplaintId) {
+      const success = await updateStatus(activeComplaintId, 'resolved', note);
+      if (success) {
+        hideModal();
+        refreshInbox();
+        renderDashboard();
+      }
+    }
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
+  }
+
+  // Logout
+  document.getElementById('logoutBtn').onclick = () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  };
+
+  // Page switching
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const pageId = btn.getAttribute('data-page');
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (pageId === 'dash') {
+        await renderDashboard();
+      } else if (pageId === 'inbox') {
+        await refreshInbox();
+      }
+    });
+  });
+
+  // Initial load
+  renderDashboard();
+</script>
+</body>
+</html>

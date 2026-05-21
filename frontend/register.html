@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | CMS Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a1f33, #071426);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .auth-card {
+            max-width: 500px;
+            width: 90%;
+            background: rgba(255,255,255,0.98);
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 30px 50px -20px rgba(0,0,0,0.5);
+        }
+        .logo { text-align: center; margin-bottom: 1.5rem; }
+        .logo h2 { color: #185FA5; font-weight: 700; }
+        .role-toggle {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.8rem;
+            background: #F1F5F9;
+            padding: 0.3rem;
+            border-radius: 40px;
+        }
+        .role-opt {
+            flex: 1;
+            text-align: center;
+            padding: 0.6rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .role-opt.active {
+            background: #185FA5;
+            color: white;
+        }
+        .input-group { margin-bottom: 1.2rem; }
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #1f3a5f;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            background: white;
+        }
+        .input-group input:focus {
+            border-color: #2a5298;
+            outline: none;
+        }
+        button {
+            background: linear-gradient(100deg, #1e3c72, #2a5298);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            width: 100%;
+            border-radius: 44px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+        .switch-link {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 0.8rem;
+        }
+        .switch-link a {
+            color: #2a5298;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .alert {
+            padding: 0.7rem;
+            border-radius: 14px;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+        }
+        .alert-error { background: #fee2e2; color: #b91c1c; }
+        .alert-success { background: #e0f2e9; color: #0a5c3e; }
+        .field-hint {
+            font-size: 0.66rem;
+            color: #7286a3;
+            margin-top: 4px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-card">
+    <div class="logo"><h2>📋 Join CMS</h2><p>Get started in seconds</p></div>
+    <div class="role-toggle" id="roleToggle">
+        <div class="role-opt active" data-role="student">Student</div>
+        <div class="role-opt" data-role="admin">Admin</div>
+    </div>
+    <div id="alertContainer"></div>
+    <div class="input-group">
+        <label>Full name</label>
+        <input type="text" id="fullname" placeholder="John Doe">
+    </div>
+    <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="you@university.edu">
+    </div>
+    <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Min. 6 characters">
+    </div>
+    <div class="input-group" id="adminCodeGroup" style="display: none;">
+        <label>Admin code <span style="font-size:0.7rem;">(required for Admin)</span></label>
+        <input type="text" id="adminCode" placeholder="ADMIN2025">
+        <div class="field-hint">Use code: ADMIN2025</div>
+    </div>
+    <button id="registerBtn">Register</button>
+    <div class="switch-link">Already have an account? <a href="login.html">Sign in →</a></div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:5001/api';
+    let selectedRole = 'student';
+
+    const roleOpts = document.querySelectorAll('.role-opt');
+    const adminCodeGroup = document.getElementById('adminCodeGroup');
+    roleOpts.forEach(opt => {
+        opt.addEventListener('click', () => {
+            roleOpts.forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            selectedRole = opt.getAttribute('data-role');
+            adminCodeGroup.style.display = selectedRole === 'admin' ? 'block' : 'none';
+        });
+    });
+
+    function showAlert(msg, isError = true) {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `<div class="alert ${isError ? 'alert-error' : 'alert-success'}">${msg}</div>`;
+        setTimeout(() => container.innerHTML = '', 4000);
+    }
+
+    document.getElementById('registerBtn').onclick = async () => {
+        const name = document.getElementById('fullname').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const adminCode = document.getElementById('adminCode').value.trim();
+
+        if (!name || !email || !password) return showAlert('All fields are required');
+        if (password.length < 6) return showAlert('Password must be at least 6 characters');
+        if (selectedRole === 'admin' && adminCode !== 'ADMIN2025') return showAlert('Invalid admin code. Use ADMIN2025');
+
+        try {
+            const res = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password, role: selectedRole })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.msg || 'Registration failed');
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            showAlert('✅ Registration successful! Redirecting...', false);
+            setTimeout(() => {
+                window.location.href = data.user.role === 'student' ? 'student-dashboard.html' : 'admin-dashboard.html';
+            }, 1500);
+        } catch (err) {
+            showAlert(err.message);
+        }
+    };
+</script>
+</body>
+</html>
