@@ -1,7 +1,7 @@
 const axios = require('axios');
 
-// Inside Docker network, backend is reachable at 'backend:5000'
-const API_URL = 'http://backend:5000/api';
+// Use the host port mapped from container port 5000
+const API_URL = 'http://localhost:5001/api';
 
 async function register(name, email, password, role) {
     const res = await axios.post(`${API_URL}/auth/register`, { name, email, password, role });
