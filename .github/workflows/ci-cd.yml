@@ -8,9 +8,9 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-  BACKEND_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/complaint-backend
-  FRONTEND_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/complaint-frontend
+  DOCKER_HUB_USERNAME: priyankamanickam
+  BACKEND_IMAGE: priyankamanickam/complaint-backend
+  FRONTEND_IMAGE: priyankamanickam/complaint-frontend
 
 jobs:
   test-and-build:
@@ -46,7 +46,7 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME || env.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and push backend image
