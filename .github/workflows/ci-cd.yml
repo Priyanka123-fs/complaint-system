@@ -83,7 +83,7 @@ jobs:
             docker rm -f complaint-backend complaint-frontend complaint-mongo 2>/dev/null || true
 
             # Remove old volume (optional: comment out to keep data)
-            docker volume rm mongo_data 2>/dev/null || true
+            #docker volume rm mongo_data 2>/dev/null || true
 
             # Pull latest images
             docker pull priyankamanickam/complaint-backend:latest
