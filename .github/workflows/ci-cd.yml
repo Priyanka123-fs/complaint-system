@@ -80,7 +80,7 @@ jobs:
             docker network create complaint-net 2>/dev/null || true
 
             # Remove old containers
-            docker rm -f complaint-backend complaint-frontend complaint-mongo 2>/dev/null || true
+            docker rm -f complaint-backend complaint-frontend complaint-mongo cadvisor 2>/dev/null || true
 
             # Remove old volume (optional: comment out to keep data)
             docker volume rm mongo_data 2>/dev/null || true
@@ -89,6 +89,7 @@ jobs:
             docker pull priyankamanickam/complaint-backend:latest
             docker pull priyankamanickam/complaint-frontend:latest
             docker pull mongo:6
+            docker pull gcr.io/cadvisor/cadvisor:latest
 
             # Start MongoDB
             docker run -d --name complaint-mongo --restart unless-stopped \
@@ -115,5 +116,16 @@ jobs:
               -p 80:80 \
               priyankamanickam/complaint-frontend:latest
 
-            # (Optional) Health check – wait for frontend to be ready
+            # Start cAdvisor monitoring
+            docker run -d --name cadvisor --restart unless-stopped \
+              --network complaint-net \
+              -p 8081:8080 \
+              -v /:/rootfs:ro \
+              -v /var/run:/var/run:ro \
+              -v /sys:/sys:ro \
+              -v /var/lib/docker/:/var/lib/docker:ro \
+              --privileged \
+              gcr.io/cadvisor/cadvisor:latest
+
+            # (Optional) Health check – wait for containers to be ready
             sleep 5
