@@ -7,6 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   BACKEND_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/complaint-backend
   FRONTEND_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/complaint-frontend
@@ -18,14 +19,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js (for tests)
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
       - name: Install test dependencies
-        run: |
-          npm install axios
+        run: npm install axios
         working-directory: ./tests
 
       - name: Start test environment (MongoDB + Backend)
@@ -34,7 +34,8 @@ jobs:
           sleep 15
 
       - name: Run integration tests
-        run: node tests/api-test.js
+        run: node api-test.js
+        working-directory: ./tests
 
       - name: Stop test environment
         run: docker-compose down
